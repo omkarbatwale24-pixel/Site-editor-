@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>\ud83c\udfa8 Birthday Site Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Poppins', sans-serif; background: #f0f4ff; color: #333; font-size: 14px; }
+
+.topbar {
+  background: linear-gradient(135deg, #6c63ff, #ff4081);
+  color: white; padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 999;
+  box-shadow: 0 4px 15px rgba(108,99,255,0.4);
+}
+.topbar h1 { font-size: 1.1rem; }
+.dl-btn {
+  background: white; color: #6c63ff; border: none;
+  padding: 9px 20px; border-radius: 25px; font-weight: 700;
+  cursor: pointer; font-size: 0.9rem; font-family: 'Poppins', sans-serif;
+}
+.dl-btn:hover { background: #f0f0ff; }
+
+.layout { display: flex; height: calc(100vh - 52px); }
+
+.sidebar {
+  width: 360px; min-width: 320px;
+  background: white; border-right: 2px solid #e8ecff;
+  overflow-y: auto; flex-shrink: 0;
+}
+
+.sec-head {
+  background: #f7f5ff; padding: 12px 16px;
+  font-weight: 700; font-size: 0.85rem; color: #6c63ff;
+  border-bottom: 1px solid #e8ecff; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between;
+  user-select: none;
+}
+.sec-head:hover { background: #ede9ff; }
+.sec-body { padding: 14px 16px; border-bottom: 2px solid #f0f4ff; display: block; }
+.sec-body.hide { display: none; }
+
+.fl { display: block; font-size: 0.75rem; font-weight: 600; color: #666; margin: 10px 0 4px; }
+.fl:first-child { margin-top: 0; }
+
+input[type=text], textarea, select {
+  width: 100%; padding: 8px 10px;
+  border: 1.5px solid #ddd; border-radius: 8px;
+  font-family: 'Poppins', sans-serif; font-size: 0.82rem;
+  background: #fafafa; color: #333;
+}
+input[type=text]:focus, textarea:focus { outline: none; border-color: #6c63ff; background: white; }
+input[type=color] { width: 100%; height: 38px; padding: 3px; border: 1.5px solid #ddd; border-radius: 8px; cursor: pointer; }
+textarea { resize: vertical; min-height: 65px; }
+
+.sw-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.sw-wrap { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.sw-wrap input { opacity: 0; width: 0; height: 0; }
+.sw-sl { position: absolute; inset: 0; background: #ccc; border-radius: 12px; cursor: pointer; transition: background 0.3s; }
+.sw-sl::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: transform 0.3s; }
+.sw-wrap input:checked + .sw-sl { background: #6c63ff; }
+.sw-wrap input:checked + .sw-sl::before { transform: translateX(20px); }
+.sw-text { font-size: 0.82rem; font-weight: 600; color: #444; }
+
+.add-btn { display: inline-block; margin-top: 8px; background: #6c63ff; color: white; border: none; padding: 7px 14px; border-radius: 18px; font-size: 0.78rem; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 600; }
+.add-btn.pink { background: #ff4081; }
+.add-btn.green { background: #22c55e; }
+
+.li { display: flex; align-items: center; gap: 6px; margin-top: 7px; }
+.li input[type=text] { flex: 1; margin: 0; }
+.xb { width: 26px; height: 26px; background: #ff4444; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; }
+
+.photo-card { background: #f8f0ff; border: 1.5px solid #d8b4fe; border-radius: 10px; padding: 10px; margin-top: 8px; }
+.custom-card { background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 10px; padding: 10px; margin-top: 8px; }
+.rm-btn { width: 100%; margin-top: 8px; background: #ff4444; color: white; border: none; border-radius: 8px; padding: 6px; cursor: pointer; font-size: 0.78rem; font-family: 'Poppins', sans-serif; }
+
+.cnt-row { display: flex; gap: 6px; margin: 6px 0; flex-wrap: wrap; }
+.cnt-btn { padding: 5px 12px; border-radius: 18px; border: 2px solid #d8b4fe; background: white; color: #7c3aed; font-weight: 600; font-size: 0.8rem; cursor: pointer; font-family: 'Poppins', sans-serif; }
+.cnt-btn.on { background: #7c3aed; color: white; border-color: #7c3aed; }
+
+.hint { font-size: 0.72rem; color: #999; font-style: italic; margin-top: 4px; }
+
+.preview-pane { flex: 1; background: #dde3ff; display: flex; flex-direction: column; align-items: center; padding: 20px; overflow-y: auto; }
+.preview-pane h2 { font-size: 0.85rem; color: #6c63ff; margin-bottom: 14px; background: white; padding: 7px 18px; border-radius: 20px; font-weight: 700; }
+.phone-wrap { width: 375px; height: 812px; border: 3px solid #6c63ff; border-radius: 22px; overflow: hidden; background: white; box-shadow: 0 20px 50px rgba(108,99,255,0.35); flex-shrink: 0; }
+.phone-wrap iframe { width: 100%; height: 100%; border: none; }
+.pnote { font-size: 0.72rem; color: #888; margin-top: 10px; }
+
+@media (max-width: 700px) {
+  .layout { flex-direction: column; height: auto; }
+  .sidebar { width: 100%; min-width: unset; }
+  .preview-pane { padding: 12px; }
+  .phone-wrap { width: 100%; height: 500px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>\ud83c\udfa8 Birthday Site Editor</h1>
+  <button class="dl-btn" id="dlbtn">\u2b07\ufe0f Download HTML</button>
+</div>
+
+<div class="layout">
+<div class="sidebar" id="sb">
+
+  <!-- BASIC INFO -->
+  <div class="sec-head" data-sec="s1">\ud83c\udf82 Basic Info <span>\u25bc</span></div>
+  <div class="sec-body" id="s1">
+    <span class="fl">Person's Name</span><input type="text" id="f_name" value="Shriya">
+    <span class="fl">Welcome Title</span><input type="text" id="f_wtitle" value="For Shriya \u2764\ufe0f">
+    <span class="fl">Welcome Subtitle</span><input type="text" id="f_wsub" value="Turn up your volume \ud83d\udd0a">
+    <span class="fl">Heading Line 1</span><input type="text" id="f_h1" value="Happy Birthday">
+    <span class="fl">Heading Line 2</span><input type="text" id="f_h2" value="Shriya! \ud83c\udf82">
+    <span class="fl">Footer Text</span><input type="text" id="f_footer" value="Built with \u2764\ufe0f by Omkar">
+  </div>
+
+  <!-- COLORS -->
+  <div class="sec-head" data-sec="s2">\ud83c\udfa8 Colors <span>\u25bc</span></div>
+  <div class="sec-body" id="s2">
+    <span class="fl">Primary Color</span><input type="color" id="f_c1" value="#ff4081">
+    <span class="fl">Secondary Color</span><input type="color" id="f_c2" value="#d63384">
+    <span class="fl">Background Color 1</span><input type="color" id="f_bg1" value="#fff0f5">
+    <span class="fl">Background Color 2</span><input type="color" id="f_bg2" value="#ffe6e9">
+  </div>
+
+  <!-- AUDIO -->
+  <div class="sec-head" data-sec="s3">\ud83c\udfb5 Audio <span>\u25bc</span></div>
+  <div class="sec-body" id="s3">
+    <p class="hint">Upload audio to GitHub, paste filename below.</p>
+    <span class="fl">Background Song</span><input type="text" id="f_song" value="song.mp3">
+    <span class="fl">Entry Sound</span><input type="text" id="f_piano" value="piano.mp3">
+  </div>
+
+  <!-- IMAGES -->
+  <div class="sec-head" data-sec="s4">\ud83d\uddbc\ufe0f Images <span>\u25bc</span></div>
+  <div class="sec-body" id="s4">
+    <p class="hint">Upload images to GitHub, paste filename here.</p>
+    <span class="fl">Corner Flower</span><input type="text" id="f_icorner" value="corner-flower.png">
+    <span class="fl">Cake Image</span><input type="text" id="f_icake" value="cake.png">
+    <span class="fl">Bouquet Image</span><input type="text" id="f_ibouquet" value="bouquet.png">
+    <span class="fl">Gift Box Image</span><input type="text" id="f_igift" value="gift-box.png">
+    <span class="fl">Crown/Award Image</span><input type="text" id="f_icrown" value="crown.png">
+    <span class="fl">Roses Image</span><input type="text" id="f_iroses" value="roses.png">
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="sec-head" data-sec="s5">\ud83d\udcac Messages <span>\u25bc</span></div>
+  <div class="sec-body" id="s5">
+    <span class="fl">Flower Card Message</span>
+    <input type="text" id="f_flowermsg" value="Sending you flowers filled with happiness!">
+    <span class="fl">Main Wish Message</span>
+    <textarea id="f_wishmsg">Hey Shriya! Wishing you a day full of happiness and a year full of joy. May all your hard work pay off this year! Keep shining like you always do. \u2728</textarea>
+    <span class="fl">Shayari / Poem</span>
+    <textarea id="f_shayari" rows="5">"Teri aankhon mein jo chamak hai,
+Teri muskaan mein jo raunaq hai.
+Dua hai bas yehi, tu yunhi khilkhilati rahe,
+Teri khushi ka asar har pal chamakta rahe."</textarea>
+    <span class="fl">Final Message Heading</span>
+    <input type="text" id="f_fmhead" value="Happy Birthday once again! \ud83c\udf82">
+    <span class="fl">Final Message Text</span>
+    <textarea id="f_fmtext">"Your dreams and goals shine in everything you do. Stay awesome, Shriya! \u2728"</textarea>
+    <span class="fl">Gift Award Title</span>
+    <input type="text" id="f_awardtitle" value="The Best Smile Award \ud83c\udfc6">
+    <span class="fl">Gift Award Subtext</span>
+    <input type="text" id="f_awardsub" value="Keep smiling always. \u2728">
+  </div>
+
+  <!-- CHECKLIST -->
+  <div class="sec-head" data-sec="s6">\u2705 Checklist <span>\u25bc</span></div>
+  <div class="sec-body" id="s6">
+    <span class="fl">Title</span><input type="text" id="f_cltitle" value="\ud83d\udcdd To-Do List for Today:">
+    <span class="fl">Hint</span><input type="text" id="f_clhint" value="(Tick all boxes for a BIG surprise! \ud83d\udc47
