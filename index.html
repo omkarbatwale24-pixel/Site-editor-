@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎨 Birthday Site Editor — by Omkar</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Poppins', sans-serif; background: #f0f4ff; color: #333; }
+
+  .top-bar {
+    background: linear-gradient(135deg, #6c63ff, #ff4081);
+    color: white;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 15px rgba(108,99,255,0.3);
+  }
+  .top-bar h1 { font-size: 1.2rem; }
+  .top-bar .btn-download {
+    background: white;
+    color: #6c63ff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: transform 0.2s;
+  }
+  .top-bar .btn-download:hover { transform: scale(1.05); }
+
+  .layout { display: flex; min-height: calc(100vh - 60px); }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 380px;
+    min-width: 340px;
+    background: white;
+    border-right: 2px solid #e8ecff;
+    overflow-y: auto;
+    padding-bottom: 40px;
+  }
+
+  .section-header {
+    background: linear-gradient(90deg, #6c63ff15, #ff408115);
+    padding: 14px 20px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #6c63ff;
+    border-bottom: 1px solid #e8ecff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .section-header .toggle-icon { margin-left: auto; font-size: 0.8rem; }
+  .section-body { padding: 16px 20px; border-bottom: 2px solid #f0f4ff; }
+  .section-body.collapsed { display: none; }
+
+  label { display: block; font-size: 0.8rem; font-weight: 600; color: #555; margin-bottom: 5px; margin-top: 12px; }
+  label:first-child { margin-top: 0; }
+  input[type="text"], input[type="color"], textarea, select {
+    width: 100%;
+    padding: 9px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    transition: border 0.2s;
+    background: #fafafa;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #6c63ff;
+    background: white;
+  }
+  input[type="color"] { height: 42px; padding: 4px; cursor: pointer; }
+  textarea { resize: vertical; min-height: 70px; }
+
+  .toggle-switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .toggle-switch input[type="checkbox"] { display: none; }
+  .toggle-label {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    background: #ccc;
+    border-radius: 13px;
+    cursor: pointer;
+    transition: background 0.3s;
+    flex-shrink: 0;
+  }
+  .toggle-label::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: left 0.3s;
+  }
+  input[type="checkbox"]:checked + .toggle-label { background: #6c63ff; }
+  input[type="checkbox"]:checked + .toggle-label::after { left: 25px; }
+  .toggle-text { font-size: 0.85rem; font-weight: 600; color: #444; }
+
+  .add-btn {
+    background: #6c63ff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-top: 10px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    transition: transform 0.2s;
+  }
+  .add-btn:hover { transform: scale(1.04); }
+  .add-btn.red { background: #ff4081; }
+  .add-btn.green { background: #22c55e; }
+
+  .item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .item-row input[type="text"] { flex: 1; margin: 0; }
+  .del-btn {
+    background: #ff4444;
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .photo-item {
+    background: #f8f0ff;
+    border: 1px solid #d8b4fe;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+  }
+  .photo-item label { color: #7c3aed; }
+
+  /* PREVIEW */
+  .preview-area {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #e8ecff;
+    overflow-y: auto;
+  }
+  .preview-area h2 {
+    font-size: 0.9rem;
+    color: #6c63ff;
+    margin-bottom: 16px;
+    background: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 700;
+  }
+  #preview-frame {
+    width: 390px;
+    height: 844px;
+    border: 3px solid #6c63ff;
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0 20px 60px rgba(108,99,255,0.3);
+    overflow: hidden;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 17px;
+  }
+
+  .hint { font-size: 0.75rem; color: #888; margin-top: 5px; font-style: italic; }
+
+  @media (max-width: 768px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: unset; }
+    #preview-frame { width: 100%; height: 500px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>🎨 Birthday Site Editor</h1>
+  <button class="btn-download" onclick="downloadSite()">⬇️ Download HTML</button>
+</div>
+
+<div class="layout">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar">
+
+    <!-- 1. BASIC INFO -->
+    <div class="section-header" onclick="toggleSection('basic')">
+      🎂 Basic Info <span class="toggle-icon" id="icon-basic">▼</span>
+    </div>
+    <div class="section-body" id="basic">
+      <label>Person's Name (e.g. Shriya)</label>
+      <input type="text" id="personName" value="Shriya" oninput="updatePreview()">
+
+      <label>Welcome Screen Title (e.g. For Shriya ❤️)</label>
+      <input type="text" id="welcomeTitle" value="For Shriya ❤️" oninput="updatePreview()">
+
+      <label>Welcome Screen Subtitle</label>
+      <input type="text" id="welcomeSubtitle" value="Turn up your volume 🔊" oninput="updatePreview()">
+
+      <label>Main Heading (e.g. Happy Birthday Shriya! 🎂)</label>
+      <input type="text" id="mainHeading" value="Happy Birthday&#10;Shriya! 🎂" oninput="updatePreview()">
+
+      <label>Footer Credit (e.g. Built with ❤️ by Omkar)</label>
+      <input type="text" id="footerText" value="Built with ❤️ by Omkar" oninput="updatePreview()">
+    </div>
+
+    <!-- 2. THEME COLORS -->
+    <div class="section-header" onclick="toggleSection('theme')">
+      🎨 Theme Colors <span class="toggle-icon" id="icon-theme">▼</span>
+    </div>
+    <div class="section-body" id="theme">
+      <label>Primary Color (buttons, headings)</label>
+      <input type="color" id="primaryColor" value="#ff4081" oninput="updatePreview()">
+
+      <label>Secondary Color (accents)</label>
+      <input type="color" id="secondaryColor" value="#d63384" oninput="updatePreview()">
+
+      <label>Background Gradient Start</label>
+      <input type="color" id="bgColor1" value="#fff0f5" oninput="updatePreview()">
+
+      <label>Background Gradient End</label>
+      <input type="color" id="bgColor2" value="#ffe6e9" oninput="updatePreview()">
+    </div>
+
+    <!-- 3. AUDIO FILES -->
+    <div class="section-header" onclick="toggleSection('audio')">
+      🎵 Audio Files <span class="toggle-icon" id="icon-audio">▼</span>
+    </div>
+    <div class="section-body" id="audio">
+      <p class="hint">Upload audio to your GitHub repo and paste the filename or path here.</p>
+      <label>Background Song (song.mp3)</label>
+      <input type="text" id="songFile" value="song.mp3" oninput="updatePreview()">
+
+      <label>Piano/Entry Sound (piano.mp3)</label>
+      <input type="text" id="pianoFile" value="piano.mp3" oninput="updatePreview()">
+    </div>
+
+    <!-- 4. IMAGES -->
+    <div class="section-header" onclick="toggleSection('images')">
+      🖼️ Site Images <span class="toggle-icon" id="icon-images">▼</span>
+    </div>
+    <div class="section-body" id="images">
+      <p class="hint">Upload images to GitHub repo and paste filename here (e.g. cake.png)</p>
+
+      <label>Corner Flower Image</label>
+      <input type="text" id="imgCorner" value="corner-flower.png" oninput="updatePreview()">
+
+      <label>Birthday Cake Image</label>
+      <input type="text" id="imgCake" value="cake.png" oninput="updatePreview()">
+
+      <label>Bouquet Image</label>
+      <input type="text" id="imgBouquet" value="bouquet.png" oninput="updatePreview()">
+
+      <label>Gift Box Image</label>
+      <input type="text" id="imgGiftBox" value="gift-box.png" oninput="updatePreview()">
+
+      <label>Crown / Award Image (inside gift)</label>
+      <input type="text" id="imgCrown" value="crown.png" oninput="updatePreview()">
+
+      <label>Roses Image (checklist reward)</label>
+      <input type="text" id="imgRoses" value="roses.png" oninput="updatePreview()">
+    </div>
+
+    <!-- 5. MESSAGES -->
+    <div class="section-header" onclick="toggleSection('messages')">
+      💬 Messages & Cards <span class="toggle-icon" id="icon-messages">▼</span>
+    </div>
+    <div class="section-body" id="messages">
+
+      <label>Flower Card Message</label>
+      <textarea id="flowerMsg" oninput="updatePreview()">Sending you flowers filled with happiness!</textarea>
+
+      <label>Main Wish Card Message</label>
+      <textarea id="mainWishMsg" oninput="updatePreview()">Hey Shriya! Wishing you a day full of happiness and a year full of joy. May all your hard work pay off this year! Keep shining like you always do. ✨</textarea>
+
+      <label>Shayari / Poem</label>
+      <textarea id="shayariText" rows="5" oninput="updatePreview()">"Teri aankhon mein jo chamak hai,
+Teri muskaan mein jo raunaq hai.
+Dua hai bas yehi, tu yunhi khilkhilati rahe,
+Teri khushi ka asar har pal chamakta rahe."</textarea>
+
+      <label>Final Message Heading</label>
+      <input type="text" id="finalMsgHeading" value="Happy Birthday once again! 🎂" oninput="updatePreview()">
+
+      <label>Final Message Text</label>
+      <textarea id="finalMsgText" rows="4" oninput="updatePreview()">"Your dreams and goals shine in everything you do. Here's to all the amazing things you'll achieve this year. Stay awesome, Shriya! ✨"</textarea>
+
+      <label>Gift Box Award Title</label>
+      <input type="text" id="giftAwardTitle" value='The "Best Smile" Award' oninput="updatePreview()">
+
+      <label>Gift Box Award Text</label>
+      <input type="text" id="giftAwardText" value="Keep smiling always. ✨" oninput="updatePreview()">
+    </div>
+
+    <!-- 6. CHECKLIST -->
+    <div class="section-header" onclick="toggleSection('checklist')">
+      ✅ To-Do Checklist <span class="toggle-icon" id="icon-checklist">▼</span>
+    </div>
+    <div class="section-body" id="checklist">
+      <label>Checklist Title</label>
+      <input type="text" id="checklistTitle" value="📝 To-Do List for Today:" oninput="updatePreview()">
+
+      <label>Checklist Hint Text</label>
+      <input type="text" id="checklistHint" value="(Tick all boxes for a BIG surprise! 👇)" oninput="updatePreview()">
+
+      <label>Checklist Items</label>
+      <div id="checklist-items">
+        <div class="item-row"><input type="text" value="Smile instantly 😊" oninput="updatePreview()"><button class="del-btn" onclick="removeItem(this, 'checklist-items')">×</button></div>
+        <div class="item-row"><input type="text" value="Eat extra Cake 🍰" oninput="updatePreview()"><button class="del-btn" onclick="removeItem(this, 'checklist-items')">×</button></div>
+        <div class="item-row"><input type="text" value="Forget all worries 💆‍♀️" oninput="updatePreview()"><button class="del-btn" onclick="removeItem(this, 'checklist-items')">×</button></div>
+        <div class="item-row"><input type="text" value="Feel like a Princess 👸" oninput="updatePreview()"><button class="del-btn" onclick="removeItem(this, 'checklist-items')">×</button></div>
+      </div>
+      <button class="add-btn" onclick="addItem('checklist-items', 'New task...')">+ Add Task</button>
+    </div>
+
+    <!-- 7. BIRTHDAY DATE SECTION -->
+    <div class="section-header" onclick="toggleSection('dateSection')">
+      📅 Birthday Date Section <span class="toggle-icon" id="icon-dateSection">▼</span>
+    </div>
+    <div class="section-body" id="dateSection">
+      <div class="toggle-switch">
+        <input type="checkbox" id="showDateSection" checked onchange="updatePreview()">
+        <label class="toggle-label" for="showDateSection"></label>
+        <span class="toggle-text">Show Birthday Date Section</span>
+      </div>
+
+      <label>Date Heading (e.g. 📅 People born on 25 July 🎂)</label>
+      <input type="text" id="dateSectionTitle" value="📅 People born on 25 July 🎂" oninput="updatePreview()">
+
+      <label>Date Description</label>
+      <textarea id="dateSectionDesc" oninput="updatePreview()">Did you know? People born on this date are known to be Creative, Kind-hearted and have a Magnetic Personality. But wait... there's a deeper connection! 🏏</textarea>
+
+      <label>Magic Number Section Title</label>
+      <input type="text" id="magicTitle" value="The Magic of Number 7 ✨" oninput="updatePreview()">
+
+      <label>Magic Number Image (e.g. number-7-magic.png)</label>
+      <input type="text" id="magicImg" value="number-7-magic.png" oninput="updatePreview()">
+
+      <label>Fun Tagline (e.g. Thala For A Reason! 🦁)</label>
+      <input type="text" id="magicTagline" value="Thala For A Reason! 🦁" oninput="updatePreview()">
+
+      <label>Fun Tagline Subtext</label>
+      <input type="text" id="magicSubtext" value="(The Universe really wanted you to be a Dhoni fan! 😉)" oninput="updatePreview()">
+    </div>
+
+    <!-- 8. VIDEO SECTION -->
+    <div class="section-header" onclick="toggleSection('videoSection')">
+      🎬 Special Video Section <span class="toggle-icon" id="icon-videoSection">▼</span>
+    </div>
+    <div class="section-body" id="videoSection">
+      <div class="toggle-switch">
+        <input type="checkbox" id="showVideoSection" checked onchange="updatePreview()">
+        <label class="toggle-label" for="showVideoSection"></label>
+        <span class="toggle-text">Show Video Section</span>
+      </div>
+
+      <label>Video Section Heading</label>
+      <input type="text" id="videoTitle" value="🏏 A Special Message from Captain Cool 🏏" oninput="updatePreview()">
+
+      <label>Video Section Subtext</label>
+      <input type="text" id="videoSubtext" value="Since you're the biggest MSD fan... 🏆" oninput="updatePreview()">
+
+      <label>Video File Name (from GitHub)</label>
+      <input type="text" id="videoFile" value="dhoni-birthday-wish.mp4" oninput="updatePreview()">
+
+      <label>Note Below Video</label>
+      <textarea id="videoNote" rows="4" oninput="updatePreview()">I know this video is AI-generated (obviously, I can't get the real Thala to wish you! 😅), but I really wanted to give you something special on your birthday.</textarea>
+    </div>
+
+    <!-- 9. QUESTIONS SECTION -->
+    <div class="section-header" onclick="toggleSection('questionsSection')">
+      ❓ Questions Section <span class="toggle-icon" id="icon-questionsSection">▼</span>
+    </div>
+    <div class="section-body" id="questionsSection">
+      <div class="toggle-switch">
+        <input type="checkbox" id="showQuestionsSection" checked onchange="updatePreview()">
+        <label class="toggle-label" for="showQuestionsSection"></label>
+        <span class="toggle-text">Show Questions Section</span>
+      </div>
+
+      <label>Section Heading</label>
+      <input type="text" id="questionHeading" value="✨ A Little Something Special ✨" oninput="updatePreview()">
+
+      <label>Question 1</label>
+      <input type="text" id="question1" value="Write one goal you want to achieve before your next birthday:" oninput="updatePreview()">
+
+      <label>Question 2</label>
+      <input type="text" id="question2" value="If your life was a book, what would be the title of this current chapter?" oninput="updatePreview()">
+
+      <label>Thank You Message (after submit)</label>
+      <textarea id="thankYouMsg" oninput="updatePreview()">Your dreams and thoughts mean the world. Keep chasing those goals and writing your beautiful story. Stay amazing! 💫</textarea>
+    </div>
+
+    <!-- 10. PERSONAL MOMENTS SECTION -->
+    <div class="section-header" onclick="toggleSection('personalMoments')">
+      📸 Personal Moments Section <span class="toggle-icon" id="icon-personalMoments">▼</span>
+    </div>
+    <div class="section-body" id="personalMoments">
+      <div class="toggle-switch">
+        <input type="checkbox" id="showPersonalMoments" onchange="updatePreview()">
+        <label class="toggle-label" for="showPersonalMoments"></label>
+        <span class="toggle-text">Show Personal Moments Section</span>
+      </div>
+
+      <label>Section Title</label>
+      <input type="text" id="momentsTitle" value="📸 Our Sweet Memories Together" oninput="updatePreview()">
+
+      <label>Section Subtitle</label>
+      <input type="text" id="momentsSubtitle" value="Every moment with you is special ✨" oninput="updatePreview()">
+
+      <label>Photos (GitHub file paths)</label>
+      <div id="moments-photos"></div>
+      <button class="add-btn green" onclick="addMomentPhoto()">+ Add Photo</button>
+      <p class="hint">Upload photos to GitHub. Paste the filename here (e.g. photo1.jpg)</p>
+    </div>
+
+    <!-- 11. EXTRA CUSTOM SECTIONS -->
+    <div class="section-header" onclick="toggleSection('customSections')">
+      ➕ Add Custom Message Cards <span class="toggle-icon" id="icon-customSections">▼</span>
+    </div>
+    <div class="section-body" id="customSections">
+      <p class="hint">Add extra message cards anywhere in the site</p>
+      <div id="custom-cards-list"></div>
+      <button class="add-btn" onclick="addCustomCard()">+ Add Message Card</button>
+    </div>
+
+    <!-- 12. PREDICTIONS -->
+    <div class="section-header" onclick="toggleSection('predictions')">
+      🔮 Yearly Predictions <span class="toggle-icon" id="icon-predictions">▼</span>
+    </div>
+    <div class="section-body" id="predictions">
+      <label>Predictions (one per line, random one shown)</label>
+      <div id="prediction-items">
+        <div class="item-row"><input type="text" value="This year, you'll achieve something you've been dreaming about! 🌟" oninput="updatePreview()"><button class="del-btn" onclick="removeItem(this, 'prediction-items')">×</button></div>
+        <div class="item-row"><input type="text" value="Amazing adventures and new friendships await you! 🌈" oninput="updatePreview()"><button class="del-btn" onclick="removeItem(this, 'prediction-items')">×</button></div>
+        <div class="item-row"><input type="text" value="Your smile will be contagious and spread joy everywhere! ✨" oninput="updatePreview()"><button class="del-btn" onclick="removeItem(this, 'prediction-items')">×</button></div>
+      </div>
+      <button class="add-btn" onclick="addItem('prediction-items', 'New prediction...')">+ Add Prediction</button>
+    </div>
+
+    <!-- 13. DISCORD WEBHOOK -->
+    <div class="section-header" onclick="toggleSection('discordSection')">
+      🔔 Discord Tracking <span class="toggle-icon" id="icon-discordSection">▼</span>
+    </div>
+    <div class="section-body" id="discordSection">
+      <p class="hint">Paste your Discord webhook URLs to get notified when someone opens the site.</p>
+      <label>Main Webhook URL</label>
+      <input type="text" id="discordMain" value="" oninput="updatePreview()" placeholder="https://discord.com/api/webhooks/...">
+
+      <label>Visitor Tracking Webhook URL</label>
+      <input type="text" id="discordVisitor" value="" oninput="updatePreview()" placeholder="https://discord.com/api/webhooks/...">
+    </div>
+
+  </div><!-- end sidebar -->
+
+  <!-- ===== PREVIEW ===== -->
+  <div class="preview-area">
+    <h2>📱 Live Preview (iPhone Size)</h2>
+    <div id="preview-fr
